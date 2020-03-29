@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
 require_relative 'lib/month_range/version'
-
 Gem::Specification.new do |spec|
   spec.name          = 'month_range'
-  spec.version       = MonthRange::VERSION
+  spec.version       = MonthRange::Version::VERSION
   spec.authors       = ['junara']
   spec.email         = ['jun5araki@gmail.com']
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'month_range/version'
-
+require_relative 'month_range/version'
+require_relative 'month_range/m_range'
+require_relative 'month_range/collection'
+require_relative 'month_range/error'
 module MonthRange
-  class Error < StandardError; end
-  # Your code goes here...
 end

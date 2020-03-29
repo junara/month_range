@@ -9,3 +9,6 @@ gem 'rake', '~> 12.0'
 gem 'rspec', '~> 3.0'
 gem 'rubocop'
 gem 'yard'
+gem 'zeitwerk'
+
+gem 'byebug', '~> 11.1'
