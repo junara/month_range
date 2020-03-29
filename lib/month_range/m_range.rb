@@ -7,10 +7,13 @@ class MonthRange::MRange < Range
   end
   class InvalidEndMonth < MonthRange::Error
   end
+  class InvalidStartEndRelation < MonthRange::Error
+  end
 
   def initialize(start_month, end_month)
     raise InvalidStartMonth, start_month unless valid_start_month?(start_month)
     raise InvalidEndMonth, end_month unless valid_end_month?(end_month)
+    raise InvalidStartEndRelation, [start_month, end_month] unless valid_start_end_relation?(start_month, end_month)
 
     super(start_month, end_month)
   end
@@ -38,6 +41,29 @@ class MonthRange::MRange < Range
     count == Float::INFINITY
   end
 
+  def subtract(range)
+    return self unless overlap?(range)
+
+    output_range = []
+    if cover?(range.just_before)
+      output_range << MonthRange::MRange.new(start_month, range.just_before)
+      output_range
+    end
+
+    if !range.non_terminated? && cover?(range.just_after)
+      output_range << MonthRange::MRange.new(range.just_after, end_month)
+    end
+    output_range.flatten.compact
+  end
+
+  def just_before
+    start_month.prev_month(1)
+  end
+
+  def just_after
+    non_terminated? ? nil : end_month.next_month(1)
+  end
+
   private
 
   def valid_start_month?(start_month)
@@ -51,6 +77,12 @@ class MonthRange::MRange < Range
     return true if end_month.is_a?(Date) && beginning_of_month?(end_month)
 
     false
+  end
+
+  def valid_start_end_relation?(start_month, end_month)
+    return true if end_month.nil?
+
+    start_month <= end_month
   end
 
   def beginning_of_month?(date)
