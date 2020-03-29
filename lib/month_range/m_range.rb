@@ -31,7 +31,11 @@ class MonthRange::MRange < Range
   end
 
   def end_month
-    last
+    non_terminated? ? nil : last
+  end
+
+  def non_terminated?
+    count == Float::INFINITY
   end
 
   private
@@ -51,9 +55,5 @@ class MonthRange::MRange < Range
 
   def beginning_of_month?(date)
     date.mday == 1
-  end
-
-  def non_terminated?
-    size == Float::INFINITY
   end
 end
