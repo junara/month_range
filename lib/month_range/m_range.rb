@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'date'
+require_relative '../month_range/error'
 
 class MonthRange::MRange < Range
   class InvalidStartMonth < MonthRange::Error
