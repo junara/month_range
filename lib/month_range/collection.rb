@@ -7,6 +7,10 @@ class MonthRange::Collection
     @collection_ranges = []
   end
 
+  def to_a
+    @collection_ranges.map { |collection_rang| [collection_rang.start_month, collection_rang.end_month] }
+  end
+
   def add(range)
     raise MonthRange::Error, 'Need MonthRange::MRange' unless range.is_a?(MonthRange::MRange)
     return @collection_ranges << range if @collection_ranges.empty?
@@ -25,6 +29,17 @@ class MonthRange::Collection
     return @collection_ranges if overlapped_collection_ranges.nil?
 
     update_collection_ranges(overlapped_collection_ranges, range) { |rs, r| subtract_range(rs, r) }
+  end
+
+  def self.new_from_date_range_array(date_range_array)
+    collection = new
+    date_range_array.each do |range|
+      start_month = range[0]
+      end_month = range[1]
+      m_range = MonthRange::MRange.new(start_month, end_month)
+      collection.add(m_range)
+    end
+    collection
   end
 
   private
