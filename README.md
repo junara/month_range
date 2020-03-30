@@ -1,4 +1,3 @@
-# UNDER DEVELOPMENT
 # MonthRange
 Calculate month range union and difference including unterminated end.
 
@@ -8,7 +7,7 @@ Calculate month range union and difference including unterminated end.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'month_range', git: 'git://github.com/junara/month_range.git'
+gem 'month_range'
 ```
 
 And then execute:
@@ -90,6 +89,10 @@ MonthRange::Service.subtraction(range_array, from_range_arrays)
 
 
 ```
+
+## Document
+https://rubydoc.info/gems/month_range
+
 
 ## Development
 
