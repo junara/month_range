@@ -32,8 +32,8 @@ class MonthRange::Service
   #  #=> [[#<Date: 2020-01-01 ((2458850j,0s,0n),+0s,2299161j)>, #<Date: 2020-04-01 ((2458941j,0s,0n),+0s,2299161j)>]]
   def self.subtraction(range_array, from_range_arrays)
     collection = range_arrays_to_collection(from_range_arrays)
-    start_month = range_array[0]
-    end_month = range_array[1]
+    start_month = MonthRange::Month.create(range_array[0])
+    end_month = MonthRange::Month.create(range_array[1])
     m_range = MonthRange::MRange.new(start_month, end_month)
     collection.subtract(m_range)
     collection.to_a
@@ -71,8 +71,8 @@ class MonthRange::Service
   #  #=> [[#<Date: 2020-01-01 ((2458850j,0s,0n),+0s,2299161j)>, nil]]
   def self.add(range_array, from_range_arrays)
     collection = range_arrays_to_collection(from_range_arrays)
-    start_month = range_array[0]
-    end_month = range_array[1]
+    start_month = MonthRange::Month.create(range_array[0])
+    end_month = MonthRange::Month.create(range_array[1])
     m_range = MonthRange::MRange.new(start_month, end_month)
     collection.add(m_range)
     collection.to_a
@@ -84,8 +84,8 @@ class MonthRange::Service
   def self.range_arrays_to_collection(range_arrays)
     collection = MonthRange::Collection.new
     range_arrays.each do |range|
-      start_month = range[0]
-      end_month = range[1]
+      start_month = MonthRange::Month.create(range[0])
+      end_month = MonthRange::Month.create(range[1])
       m_range = MonthRange::MRange.new(start_month, end_month)
       collection.add(m_range)
     end

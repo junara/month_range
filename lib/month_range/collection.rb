@@ -8,7 +8,7 @@ class MonthRange::Collection
   end
 
   def to_a
-    @collection_ranges.map { |collection_rang| [collection_rang.start_month, collection_rang.end_month] }
+    @collection_ranges.map { |collection_range| [collection_range.start_month.to_date, collection_range.end_month.to_date] }
   end
 
   def add(range)
@@ -60,11 +60,7 @@ class MonthRange::Collection
 
   def merge_range(ranges, range)
     start_month = (ranges + [range]).map(&:start_month).min { |a, b| a <=> b }
-    end_month = if (ranges + [range]).any?(&:non_terminated?)
-                  nil
-                else
-                  (ranges + [range]).map(&:end_month).max { |a, b| a <=> b }
-                end
+    end_month = (ranges + [range]).map(&:end_month).max { |a, b| a <=> b }
     MonthRange::MRange.new(start_month, end_month)
   end
 
@@ -104,7 +100,7 @@ class MonthRange::Collection
   def continuous?(range, next_range)
     return false if range.nil? || next_range.nil?
     raise if range.start_month >= next_range.start_month
-    return false if range.end_month.nil?
+    return false if range.end_month.infinite?
 
     range.end_month == next_range.just_before
   end
