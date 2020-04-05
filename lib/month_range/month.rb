@@ -35,23 +35,15 @@ class MonthRange::Month < Date
     end
 
     def infinite?
-      d.nonzero?
-    end
-
-    def <(_other)
-      false
+      true
     end
 
     def <=(other)
       other.infinite?
     end
 
-    def >(_other)
-      true
-    end
-
     def >=(other)
-      other.infinite?
+      other.infinite? ? true : other.is_a?(MonthRange::Month)
     end
 
     def ==(other)
