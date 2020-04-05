@@ -11,7 +11,7 @@ class MonthRange::MRange < Range
   def initialize(start_month, end_month)
     raise InvalidStartEnd unless start_month.is_a?(MonthRange::Month)
     raise InvalidStartEnd unless end_month.is_a?(MonthRange::Month) || end_month.is_a?(MonthRange::Month::Infinity)
-    raise InvalidStartEnd [start_month, end_month] unless valid_start_end_relation?(start_month, end_month)
+    raise InvalidStartEnd, [start_month, end_month] unless valid_start_end_relation?(start_month, end_month)
 
     super(start_month, end_month)
     @start_month = start_month
