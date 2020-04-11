@@ -299,6 +299,34 @@ RSpec.describe MonthRange::Service do
         }
       end
     end
+    context 'not overlapped' do
+      let(:from_range_arrays) do
+        [[Date.parse('2020-06-01'), nil]]
+      end
+      context do
+        let(:range_array) { [Date.parse('2020-01-01'), Date.parse('2020-04-01')] }
+        it {
+          is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-04-01')],
+                             [Date.parse('2020-06-01'), nil]]
+        }
+      end
+    end
+
+    context 'overlapped collection' do
+      let(:from_range_arrays) do
+        [
+          [Date.parse('2020-06-01'), Date.parse('2020-06-01')],
+          [Date.parse('2020-01-01'), Date.parse('2020-06-01')]
+        ]
+      end
+      context do
+        let(:range_array) { [Date.parse('2020-09-01'), Date.parse('2020-10-01')] }
+        it {
+          is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-06-01')],
+                             [Date.parse('2020-09-01'), Date.parse('2020-10-01')]]
+        }
+      end
+    end
   end
 
   describe '#subtraction' do
