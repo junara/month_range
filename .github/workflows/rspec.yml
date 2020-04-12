@@ -1,8 +1,7 @@
-name: Ruby Rubocop Rspec
-on: [push, pull_request]
+name: RSpec
+on: [pull_request]
 jobs:
   build:
-    name: Build + rubocop + rspec
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -13,7 +12,5 @@ jobs:
         run: |
           gem install bundler
           bundle install
-      - name: rubocop
-        run: bundle exec rubocop
       - name: rspec
         run: bundle exec rspec
