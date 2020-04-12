@@ -25,7 +25,7 @@ class MonthRange::Collection
 
   def subtract(m_range)
     raise MonthRange::Error, 'Need MonthRange::MRange' unless m_range.is_a?(MonthRange::MRange)
-    raise if @stored_m_ranges.empty?
+    return if @stored_m_ranges.empty?
 
     update_stored_m_ranges(m_range) do |overlapped_collection_ranges|
       subtract_range(overlapped_collection_ranges, m_range)

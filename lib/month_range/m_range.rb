@@ -36,8 +36,8 @@ class MonthRange::MRange < Range
     return self unless overlap?(m_range)
 
     output_range = []
-    output_range << MonthRange::MRange.new(start_month, m_range.just_before) if cover?(m_range.start_month)
-    output_range << MonthRange::MRange.new(m_range.just_after, end_month) if cover?(m_range.end_month) && m_range.terminated?
+    output_range << MonthRange::MRange.new(start_month, m_range.just_before) if cover?(m_range.just_before)
+    output_range << MonthRange::MRange.new(m_range.just_after, end_month) if cover?(m_range.just_after) && m_range.terminated?
     output_range.flatten.compact
   end
 
