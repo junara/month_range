@@ -1,107 +1,90 @@
 # frozen_string_literal: true
 
 class MonthRange::Collection
-  attr_reader :collection_ranges
+  attr_reader :stored_m_ranges
 
-  def initialize
-    @collection_ranges = []
+  def initialize(m_ranges = [])
+    @stored_m_ranges = []
+    m_ranges.each { |m_range| add(m_range) }
   end
 
   def to_a
-    @collection_ranges.map { |collection_range| [collection_range.start_month.to_date, collection_range.end_month.to_date] }
-  end
-
-  def add(range)
-    raise MonthRange::Error, 'Need MonthRange::MRange' unless range.is_a?(MonthRange::MRange)
-    return @collection_ranges << range if @collection_ranges.empty?
-
-    overlapped_collection_ranges = @collection_ranges.select { |collection_range| collection_range.overlap?(range) }
-    return @collection_ranges if overlapped_collection_ranges.nil?
-
-    update_collection_ranges(overlapped_collection_ranges, range) { |rs, r| [merge_range(rs, r)] }
-  end
-
-  def subtract(range)
-    raise MonthRange::Error, 'Need MonthRange::MRange' unless range.is_a?(MonthRange::MRange)
-    raise if @collection_ranges.empty?
-
-    overlapped_collection_ranges = @collection_ranges.select { |collection_range| collection_range.overlap?(range) }
-    return @collection_ranges if overlapped_collection_ranges.nil?
-
-    update_collection_ranges(overlapped_collection_ranges, range) { |rs, r| subtract_range(rs, r) }
-  end
-
-  def self.new_from_date_range_array(date_range_array)
-    collection = new
-    date_range_array.each do |range|
-      start_month = range[0]
-      end_month = range[1]
-      m_range = MonthRange::MRange.new(start_month, end_month)
-      collection.add(m_range)
+    @stored_m_ranges.map do |collection_range|
+      [collection_range.start_month.to_date, collection_range.end_month.to_date]
     end
-    collection
+  end
+
+  def add(m_range)
+    raise MonthRange::Error, 'Need MonthRange::MRange' unless m_range.is_a?(MonthRange::MRange)
+    return @stored_m_ranges << m_range if @stored_m_ranges.empty?
+
+    update_stored_m_ranges(m_range) do |overlapped_collection_ranges|
+      [merge_range(overlapped_collection_ranges, m_range)]
+    end
+  end
+
+  def subtract(m_range)
+    raise MonthRange::Error, 'Need MonthRange::MRange' unless m_range.is_a?(MonthRange::MRange)
+    raise if @stored_m_ranges.empty?
+
+    update_stored_m_ranges(m_range) do |overlapped_collection_ranges|
+      subtract_range(overlapped_collection_ranges, m_range)
+    end
   end
 
   private
 
-  def update_collection_ranges(overlapped_collection_ranges, range)
-    @collection_ranges -= overlapped_collection_ranges
-    @collection_ranges += yield(overlapped_collection_ranges, range)
-    @collection_ranges = sort_ranges_asc(@collection_ranges.flatten.compact)
-    @collection_ranges = combine_continuous_range(@collection_ranges)
-    @collection_ranges
+  def overlapped_collection_ranges(m_range)
+    @stored_m_ranges.select { |collection_range| collection_range.overlap?(m_range) }
   end
 
-  def sort_ranges_asc(ranges)
-    return ranges if ranges.size <= 1
-
-    ranges.sort { |a, b| a.start_month <=> b.start_month }
+  def update_stored_m_ranges(m_range)
+    m_ranges = overlapped_collection_ranges(m_range)
+    delete_m_ranges_to_stored(m_ranges)
+    add_m_ranges_to_stored(yield(m_ranges))
   end
 
-  def merge_range(ranges, range)
-    start_month = (ranges + [range]).map(&:start_month).min { |a, b| a <=> b }
-    end_month = (ranges + [range]).map(&:end_month).max { |a, b| a <=> b }
+  def delete_m_ranges_to_stored(m_ranges)
+    @stored_m_ranges -= m_ranges
+    @stored_m_ranges = combine_continuous_range(sort_ranges_asc(@stored_m_ranges.flatten.compact))
+  end
+
+  def add_m_ranges_to_stored(m_ranges)
+    @stored_m_ranges += m_ranges
+    @stored_m_ranges = combine_continuous_range(sort_ranges_asc(@stored_m_ranges.flatten.compact))
+  end
+
+  def sort_ranges_asc(m_ranges)
+    return m_ranges if m_ranges.size <= 1
+
+    m_ranges.sort { |a, b| a.start_month <=> b.start_month }
+  end
+
+  def merge_range(m_ranges, m_range)
+    start_month = (m_ranges + [m_range]).map(&:start_month).min { |a, b| a <=> b }
+    end_month = (m_ranges + [m_range]).map(&:end_month).max { |a, b| a <=> b }
     MonthRange::MRange.new(start_month, end_month)
   end
 
-  def subtract_range(ranges, range)
-    output_range = []
-    ranges.each do |r|
-      output_range << r.subtract(range)
+  def subtract_range(m_ranges, m_range)
+    output_m_range = []
+    m_ranges.each do |r|
+      output_m_range << r.subtract(m_range)
     end
-    output_range.flatten.compact
+    output_m_range.flatten.compact
   end
 
-  def combine_continuous_range(ranges)
-    return ranges if ranges.count <= 1
+  def combine_continuous_range(m_ranges) # rubocop:disable Metrics/CyclomaticComplexity
+    return m_ranges if m_ranges.count <= 1
 
-    temp_range = nil
-    output_ranges = []
-    ranges.each_with_index do |range, idx|
-      (temp_range = range) && next if idx.zero?
-
-      if idx == ranges.size - 1 && continuous?(temp_range, range)
-        output_ranges << MonthRange::MRange.new(temp_range.start_month, range.end_month)
-        next
-      elsif idx == ranges.size - 1
-        output_ranges << temp_range
-        output_ranges << range
-        next
-      elsif continuous?(temp_range, range)
-        temp_range = MonthRange::MRange.new(temp_range.start_month, range.end_month)
-        next
-      end
-      output_ranges << temp_range
-      temp_range = range
+    before_m_range = nil
+    output_m_ranges = []
+    m_ranges.each_with_index do |m_range, idx|
+      (before_m_range = m_range) && next if idx.zero?
+      (before_m_range = before_m_range.combine(m_range)) && next if before_m_range.continuous?(m_range)
+      output_m_ranges << before_m_range
+      before_m_range = m_range
     end
-    output_ranges
-  end
-
-  def continuous?(range, next_range)
-    return false if range.nil? || next_range.nil?
-    raise if range.start_month >= next_range.start_month
-    return false if range.end_month.infinite?
-
-    range.end_month == next_range.just_before
+    output_m_ranges << before_m_range unless output_m_ranges.include?(before_m_range)
   end
 end

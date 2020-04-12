@@ -1,0 +1,16 @@
+name: RSpec
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          version: 2.6
+      - name: Build
+        run: |
+          gem install bundler
+          bundle install
+      - name: rspec
+        run: bundle exec rspec

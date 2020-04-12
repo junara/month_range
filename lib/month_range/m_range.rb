@@ -18,12 +18,10 @@ class MonthRange::MRange < Range
     @end_month = end_month
   end
 
-  def overlap?(range)
-    raise "#{range} must be MRange." unless range.is_a?(MonthRange::MRange)
+  def overlap?(m_range)
+    raise "#{m_range} must be MRange." unless m_range.is_a?(MonthRange::MRange)
 
-    if cover?(range.start_month) || cover?(range.end_month) || (range.start_month <= start_month && end_month <= range.end_month)
-      true
-    end
+    true if cover?(m_range.start_month) || cover?(m_range.end_month) || m_range.cover?(self)
   end
 
   def non_terminated?
@@ -34,12 +32,12 @@ class MonthRange::MRange < Range
     !end_month.infinite?
   end
 
-  def subtract(range)
-    return self unless overlap?(range)
+  def subtract(m_range) # rubocop:disable Metrics/AbcSize
+    return self unless overlap?(m_range)
 
     output_range = []
-    output_range << MonthRange::MRange.new(start_month, range.just_before) if cover?(range.start_month)
-    output_range << MonthRange::MRange.new(range.just_after, end_month) if cover?(range.end_month) && range.terminated?
+    output_range << MonthRange::MRange.new(start_month, m_range.just_before) if cover?(m_range.start_month)
+    output_range << MonthRange::MRange.new(m_range.just_after, end_month) if cover?(m_range.end_month) && m_range.terminated?
     output_range.flatten.compact
   end
 
@@ -49,6 +47,22 @@ class MonthRange::MRange < Range
 
   def just_after
     non_terminated? ? end_month : end_month.next_month(1)
+  end
+
+  def continuous?(m_range)
+    return false if m_range.nil?
+    raise if start_month >= m_range.start_month
+    return false if end_month.infinite?
+
+    end_month == m_range.just_before
+  end
+
+  def combine(m_range)
+    if start_month < m_range.start_month
+      MonthRange::MRange.new(start_month, m_range.end_month)
+    else
+      MonthRange::MRange.new(m_range.start_month, end_month)
+    end
   end
 
   private

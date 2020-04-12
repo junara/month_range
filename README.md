@@ -1,4 +1,7 @@
 # MonthRange
+![](https://github.com/junara/month_range/workflows/RuboCop/badge.svg)
+![](https://github.com/junara/month_range/workflows/RSpec/badge.svg)
+
 Calculate month range union and difference including unterminated end.
 
 

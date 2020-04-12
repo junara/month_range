@@ -30,12 +30,21 @@ class MonthRange::Service
   #  MonthRange::Service.add(range_array, from_range_arrays)
   #
   #  #=> [[#<Date: 2020-01-01 ((2458850j,0s,0n),+0s,2299161j)>, #<Date: 2020-04-01 ((2458941j,0s,0n),+0s,2299161j)>]]
-  def self.subtraction(range_array, from_range_arrays)
-    collection = range_arrays_to_collection(from_range_arrays)
-    start_month = MonthRange::Month.create(range_array[0])
-    end_month = MonthRange::Month.create(range_array[1])
-    m_range = MonthRange::MRange.new(start_month, end_month)
-    collection.subtract(m_range)
+  def self.subtraction(range_array, from_range_arrays) # rubocop:disable Metrics/MethodLength:
+    m_ranges = from_range_arrays.map do |range|
+      MonthRange::MRange.new(
+        MonthRange::Month.create(range[0]),
+        MonthRange::Month.create(range[1])
+      )
+    end
+    collection = MonthRange::Collection.new(m_ranges)
+
+    collection.subtract(
+      MonthRange::MRange.new(
+        MonthRange::Month.create(range_array[0]),
+        MonthRange::Month.create(range_array[1])
+      )
+    )
     collection.to_a
   end
 
@@ -69,26 +78,19 @@ class MonthRange::Service
   #  MonthRange::Service.add(range_array, from_range_arrays)
   #
   #  #=> [[#<Date: 2020-01-01 ((2458850j,0s,0n),+0s,2299161j)>, nil]]
-  def self.add(range_array, from_range_arrays)
-    collection = range_arrays_to_collection(from_range_arrays)
-    start_month = MonthRange::Month.create(range_array[0])
-    end_month = MonthRange::Month.create(range_array[1])
-    m_range = MonthRange::MRange.new(start_month, end_month)
-    collection.add(m_range)
-    collection.to_a
-  end
-
-  # Change to MonthRange::Collection
-  # @param [[[Date, Date], [Date, Date],]] range_arrays
-  # @return [MonthRange::Collection]
-  def self.range_arrays_to_collection(range_arrays)
-    collection = MonthRange::Collection.new
-    range_arrays.each do |range|
-      start_month = MonthRange::Month.create(range[0])
-      end_month = MonthRange::Month.create(range[1])
-      m_range = MonthRange::MRange.new(start_month, end_month)
-      collection.add(m_range)
+  def self.add(range_array, from_range_arrays) # rubocop:disable Metrics/MethodLength
+    m_ranges = from_range_arrays.map do |range|
+      MonthRange::MRange.new(
+        MonthRange::Month.create(range[0]),
+        MonthRange::Month.create(range[1])
+      )
     end
-    collection
+    collection = MonthRange::Collection.new(m_ranges)
+
+    collection.add(MonthRange::MRange.new(
+                     MonthRange::Month.create(range_array[0]),
+                     MonthRange::Month.create(range_array[1])
+                   ))
+    collection.to_a
   end
 end
