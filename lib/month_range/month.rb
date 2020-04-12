@@ -19,6 +19,10 @@ class MonthRange::Month < Date
     Date.new(year, month, mday)
   end
 
+  def infinite?
+    false
+  end
+
   class Infinity < Numeric
     def infinite?
       true
