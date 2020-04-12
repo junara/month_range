@@ -32,14 +32,12 @@ class MonthRange::MRange < Range
     !end_month.infinite?
   end
 
-  def subtract(m_range)
+  def subtract(m_range) # rubocop:disable Metrics/AbcSize
     return self unless overlap?(m_range)
 
     output_range = []
     output_range << MonthRange::MRange.new(start_month, m_range.just_before) if cover?(m_range.start_month)
-    if cover?(m_range.end_month) && m_range.terminated?
-      output_range << MonthRange::MRange.new(m_range.just_after, end_month)
-    end
+    output_range << MonthRange::MRange.new(m_range.just_after, end_month) if cover?(m_range.end_month) && m_range.terminated?
     output_range.flatten.compact
   end
 

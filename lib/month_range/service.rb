@@ -30,7 +30,7 @@ class MonthRange::Service
   #  MonthRange::Service.add(range_array, from_range_arrays)
   #
   #  #=> [[#<Date: 2020-01-01 ((2458850j,0s,0n),+0s,2299161j)>, #<Date: 2020-04-01 ((2458941j,0s,0n),+0s,2299161j)>]]
-  def self.subtraction(range_array, from_range_arrays)
+  def self.subtraction(range_array, from_range_arrays) # rubocop:disable Metrics/MethodLength:
     m_ranges = from_range_arrays.map do |range|
       MonthRange::MRange.new(
         MonthRange::Month.create(range[0]),
@@ -78,7 +78,7 @@ class MonthRange::Service
   #  MonthRange::Service.add(range_array, from_range_arrays)
   #
   #  #=> [[#<Date: 2020-01-01 ((2458850j,0s,0n),+0s,2299161j)>, nil]]
-  def self.add(range_array, from_range_arrays)
+  def self.add(range_array, from_range_arrays) # rubocop:disable Metrics/MethodLength
     m_ranges = from_range_arrays.map do |range|
       MonthRange::MRange.new(
         MonthRange::Month.create(range[0]),

@@ -20,20 +20,6 @@ class MonthRange::Month < Date
   end
 
   class Infinity < Numeric
-    def initialize(d = 1)
-      @d = d <=> 0
-    end
-
-    attr_reader :d
-
-    def zero?
-      false
-    end
-
-    def finite?
-      false
-    end
-
     def infinite?
       true
     end
@@ -57,21 +43,15 @@ class MonthRange::Month < Date
     def <=>(other)
       case other
       when Infinity
-        return d <=> other.d
+        return 1
       when MonthRange::Month
-        return d
+        return 1
       end
       nil
     end
 
     def to_f
-      return 0 if @d.zero?
-
-      if @d.positive?
-        Float::INFINITY
-      else
-        -Float::INFINITY
-      end
+      Float::INFINITY
     end
   end
 end

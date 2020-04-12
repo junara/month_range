@@ -9,21 +9,27 @@ class MonthRange::Collection
   end
 
   def to_a
-    @stored_m_ranges.map { |collection_range| [collection_range.start_month.to_date, collection_range.end_month.to_date] }
+    @stored_m_ranges.map do |collection_range|
+      [collection_range.start_month.to_date, collection_range.end_month.to_date]
+    end
   end
 
   def add(m_range)
     raise MonthRange::Error, 'Need MonthRange::MRange' unless m_range.is_a?(MonthRange::MRange)
     return @stored_m_ranges << m_range if @stored_m_ranges.empty?
 
-    update_collection_ranges(m_range) { |overlapped_collection_ranges, m_range| [merge_range(overlapped_collection_ranges, m_range)] }
+    update_stored_m_ranges(m_range) do |overlapped_collection_ranges|
+      [merge_range(overlapped_collection_ranges, m_range)]
+    end
   end
 
   def subtract(m_range)
     raise MonthRange::Error, 'Need MonthRange::MRange' unless m_range.is_a?(MonthRange::MRange)
     raise if @stored_m_ranges.empty?
 
-    update_collection_ranges(m_range) { |overlapped_collection_ranges, m_range| subtract_range(overlapped_collection_ranges, m_range) }
+    update_stored_m_ranges(m_range) do |overlapped_collection_ranges|
+      subtract_range(overlapped_collection_ranges, m_range)
+    end
   end
 
   private
@@ -32,10 +38,10 @@ class MonthRange::Collection
     @stored_m_ranges.select { |collection_range| collection_range.overlap?(m_range) }
   end
 
-  def update_collection_ranges(m_range)
+  def update_stored_m_ranges(m_range)
     m_ranges = overlapped_collection_ranges(m_range)
     delete_m_ranges_to_stored(m_ranges)
-    add_m_ranges_to_stored(yield(m_ranges, m_range))
+    add_m_ranges_to_stored(yield(m_ranges))
   end
 
   def delete_m_ranges_to_stored(m_ranges)
@@ -68,7 +74,7 @@ class MonthRange::Collection
     output_m_range.flatten.compact
   end
 
-  def combine_continuous_range(m_ranges)
+  def combine_continuous_range(m_ranges) # rubocop:disable Metrics/CyclomaticComplexity
     return m_ranges if m_ranges.count <= 1
 
     before_m_range = nil
