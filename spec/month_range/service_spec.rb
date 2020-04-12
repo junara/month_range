@@ -657,123 +657,437 @@ RSpec.describe MonthRange::Service do
 
   describe '#subtraction' do
     let(:subject) { described_class.subtraction(range_array, from_range_arrays) }
-    context do
-      let(:from_range_arrays) do
-        [[Date.parse('2020-01-01'), Date.parse('2020-04-01')],
-         [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-         [Date.parse('2020-12-01'), nil]]
-      end
-      context do
-        let(:range_array) { [Date.parse('2020-03-01'), Date.parse('2020-05-01')] }
-        it {
-          is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-02-01')],
-                             [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-                             [Date.parse('2020-12-01'), nil]]
-        }
-      end
-      context '複数期間にまたがる' do
-        let(:range_array) { [Date.parse('2020-03-01'), Date.parse('2020-08-01')] }
-        it {
-          is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-02-01')],
-                             [Date.parse('2020-09-01'), Date.parse('2020-10-01')],
-                             [Date.parse('2020-12-01'), nil]]
-        }
-      end
-      context '期間内' do
-        let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-03-01')] }
-        it {
-          is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-01-01')],
-                             [Date.parse('2020-04-01'), Date.parse('2020-04-01')],
-                             [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-                             [Date.parse('2020-12-01'), nil]]
-        }
-      end
-      context '終端なし' do
-        let(:range_array) { [Date.parse('2020-05-01'), nil] }
-        it { is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-04-01')]] }
+    shared_examples 'subtract range_array to from_range_arrays' do |date_str_range, from_date_str_ranges, result_date_str_ranges|
+      let(:range_array) { to_range_array(date_str_range) }
+      let(:from_range_arrays) { to_range_arrays(from_date_str_ranges) }
+      let(:result_range_arrays) { to_range_arrays(result_date_str_ranges) }
+      it "should return #{result_date_str_ranges} by subtracting ##{date_str_range} to #{from_date_str_ranges}" do
+        expect(subject).to eq(result_range_arrays)
       end
     end
+    context 'Num of from_range_arrays is one' do
+      context 'subtracted 1 month range' do
+        context 'Num of from_range_arrays is one' do
+          it_should_behave_like 'subtract range_array to from_range_arrays',
+                                %w[2020-06-01 2020-06-01],
+                                [],
+                                []
 
-    context do
-      let(:from_range_arrays) do
-        [
-          [Date.parse('2020-12-01'), nil],
-          [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-          [Date.parse('2020-01-01'), Date.parse('2020-04-01')]
-        ]
+          context 'subtracted 1 month range' do
+            subtraction = %w[2020-06-01 2020-06-01]
+            context 'from 1 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-05-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-06-01]],
+                                    []
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-07-01]],
+                                    [%w[2020-07-01 2020-07-01]]
+            end
+            context 'from 2 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-08-01]],
+                                    [%w[2020-07-01 2020-08-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-07-01]],
+                                    [%w[2020-07-01 2020-07-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-06-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-04-01 2020-05-01]],
+                                    [%w[2020-04-01 2020-05-01]]
+            end
+            context 'from 3 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-09-01]],
+                                    [%w[2020-07-01 2020-09-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-08-01]],
+                                    [%w[2020-07-01 2020-08-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-07-01]],
+                                    [%w[2020-05-01 2020-05-01], %w[2020-07-01 2020-07-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-04-01 2020-06-01]],
+                                    [%w[2020-04-01 2020-05-01]]
+            end
+            context 'from infinite range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-07-01', nil]],
+                                    [['2020-07-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-06-01', nil]],
+                                    [['2020-07-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-05-01', nil]],
+                                    [%w[2020-05-01 2020-05-01], ['2020-07-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-04-01', nil]],
+                                    [%w[2020-04-01 2020-05-01], ['2020-07-01', nil]]
+            end
+          end
+        end
       end
-      context do
-        let(:range_array) { [Date.parse('2020-02-01'), nil] }
-        it { is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-01-01')]] }
+      context 'subtracted 1 month range' do
+        context 'Num of from_range_arrays is one' do
+          it_should_behave_like 'subtract range_array to from_range_arrays',
+                                %w[2020-06-01 2020-06-01],
+                                [],
+                                []
+
+          context 'subtracted 1 month range' do
+            subtraction = %w[2020-06-01 2020-06-01]
+            context 'from 1 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-05-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-06-01]],
+                                    []
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-07-01]],
+                                    [%w[2020-07-01 2020-07-01]]
+            end
+            context 'from 2 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-08-01]],
+                                    [%w[2020-07-01 2020-08-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-07-01]],
+                                    [%w[2020-07-01 2020-07-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-06-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-04-01 2020-05-01]],
+                                    [%w[2020-04-01 2020-05-01]]
+            end
+            context 'from 3 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-09-01]],
+                                    [%w[2020-07-01 2020-09-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-08-01]],
+                                    [%w[2020-07-01 2020-08-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-07-01]],
+                                    [%w[2020-05-01 2020-05-01], %w[2020-07-01 2020-07-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-04-01 2020-06-01]],
+                                    [%w[2020-04-01 2020-05-01]]
+            end
+            context 'from infinite range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-07-01', nil]],
+                                    [['2020-07-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-06-01', nil]],
+                                    [['2020-07-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-05-01', nil]],
+                                    [%w[2020-05-01 2020-05-01], ['2020-07-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-04-01', nil]],
+                                    [%w[2020-04-01 2020-05-01], ['2020-07-01', nil]]
+            end
+          end
+        end
       end
-      context do
-        let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-02-01')] }
-        it {
-          is_expected.to eq [
-            [Date.parse('2020-01-01'), Date.parse('2020-01-01')],
-            [Date.parse('2020-03-01'), Date.parse('2020-04-01')],
-            [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-            [Date.parse('2020-12-01'), nil]
-          ]
-        }
-      end
-      context do
-        let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-07-01')] }
-        it {
-          is_expected.to eq [
-            [Date.parse('2020-01-01'), Date.parse('2020-01-01')],
-            [Date.parse('2020-08-01'), Date.parse('2020-10-01')],
-            [Date.parse('2020-12-01'), nil]
-          ]
-        }
-      end
-      context do
-        let(:range_array) { [Date.parse('2021-01-01'), Date.parse('2021-02-01')] }
-        it {
-          is_expected.to eq [
-            [Date.parse('2020-01-01'), Date.parse('2020-04-01')],
-            [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-            [Date.parse('2020-12-01'), Date.parse('2020-12-01')],
-            [Date.parse('2021-03-01'), nil]
-          ]
-        }
-      end
-      context do
-        let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-11-01')] }
-        it {
-          is_expected.to eq [
-            [Date.parse('2020-01-01'), Date.parse('2020-01-01')],
-            [Date.parse('2020-12-01'), nil]
-          ]
-        }
-      end
-      context do
-        let(:range_array) { [Date.parse('2010-02-01'), nil] }
-        it { is_expected.to eq [] }
-      end
-      context do
-        let(:range_array) { [Date.parse('2010-02-01'), Date.parse('2020-12-01')] }
-        it { is_expected.to eq [[Date.parse('2021-01-01'), nil]] }
+
+      context 'subtracted 2 month range' do
+        context 'Num of from_range_arrays is one' do
+          it_should_behave_like 'subtract range_array to from_range_arrays',
+                                %w[2020-06-01 2020-07-01],
+                                [],
+                                []
+
+          context 'subtracted 1 month range' do
+            subtraction = %w[2020-06-01 2020-07-01]
+            context 'from 1 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-05-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-06-01]],
+                                    []
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-07-01]],
+                                    []
+            end
+            context 'from 2 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-08-01]],
+                                    [%w[2020-08-01 2020-08-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-07-01]],
+                                    []
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-06-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-04-01 2020-05-01]],
+                                    [%w[2020-04-01 2020-05-01]]
+            end
+            context 'from 3 month range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-07-01 2020-09-01]],
+                                    [%w[2020-08-01 2020-09-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-06-01 2020-08-01]],
+                                    [%w[2020-08-01 2020-08-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-05-01 2020-07-01]],
+                                    [%w[2020-05-01 2020-05-01]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [%w[2020-04-01 2020-06-01]],
+                                    [%w[2020-04-01 2020-05-01]]
+            end
+            context 'from infinite range' do
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-07-01', nil]],
+                                    [['2020-08-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-06-01', nil]],
+                                    [['2020-08-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-05-01', nil]],
+                                    [%w[2020-05-01 2020-05-01], ['2020-08-01', nil]]
+              it_should_behave_like 'subtract range_array to from_range_arrays',
+                                    subtraction,
+                                    [['2020-04-01', nil]],
+                                    [%w[2020-04-01 2020-05-01], ['2020-08-01', nil]]
+            end
+          end
+        end
       end
     end
-    context do
-      let(:from_range_arrays) do
-        [
-          [Date.parse('2020-07-01'), nil],
-          [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
-          [Date.parse('2020-01-01'), Date.parse('2020-08-01')]
-        ]
+    context 'Num of from_range_arrays is 3' do
+      context 'all range is terminated' do
+        to = [%w[2020-05-01 2020-06-01], %w[2020-02-01 2020-03-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-01-01],
+                              to,
+                              [%w[2020-02-01 2020-03-01], %w[2020-05-01 2020-06-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-02-01],
+                              to,
+                              [%w[2020-03-01 2020-03-01], %w[2020-05-01 2020-06-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-03-01],
+                              to,
+                              [%w[2020-05-01 2020-06-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-04-01],
+                              to,
+                              [%w[2020-05-01 2020-06-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-05-01],
+                              to,
+                              [%w[2020-06-01 2020-06-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-07-01],
+                              to,
+                              [%w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-08-01],
+                              to,
+                              [%w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-01-01 2020-09-01],
+                              to,
+                              [%w[2020-10-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-05-01 2020-5-01],
+                              to,
+                              [%w[2020-02-01 2020-03-01], %w[2020-06-01 2020-06-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-05-01 2020-6-01],
+                              to,
+                              [%w[2020-02-01 2020-03-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-03-01 2020-6-01],
+                              to,
+                              [%w[2020-02-01 2020-02-01], %w[2020-09-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              %w[2020-03-01 2020-9-01],
+                              to,
+                              [%w[2020-02-01 2020-02-01], %w[2020-10-01 2020-10-01]]
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              ['2020-01-01', nil],
+                              to,
+                              []
+        it_should_behave_like 'subtract range_array to from_range_arrays',
+                              ['2020-06-01', nil],
+                              to,
+                              [%w[2020-02-01 2020-03-01], %w[2020-05-01 2020-05-01]]
+      end
+    end
+    context 'miscellaneous' do
+      context do
+        let(:from_range_arrays) do
+          [[Date.parse('2020-01-01'), Date.parse('2020-04-01')],
+           [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+           [Date.parse('2020-12-01'), nil]]
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-03-01'), Date.parse('2020-05-01')] }
+          it {
+            is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-02-01')],
+                               [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+                               [Date.parse('2020-12-01'), nil]]
+          }
+        end
+        context '複数期間にまたがる' do
+          let(:range_array) { [Date.parse('2020-03-01'), Date.parse('2020-08-01')] }
+          it {
+            is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-02-01')],
+                               [Date.parse('2020-09-01'), Date.parse('2020-10-01')],
+                               [Date.parse('2020-12-01'), nil]]
+          }
+        end
+        context '期間内' do
+          let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-03-01')] }
+          it {
+            is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-01-01')],
+                               [Date.parse('2020-04-01'), Date.parse('2020-04-01')],
+                               [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+                               [Date.parse('2020-12-01'), nil]]
+          }
+        end
+        context '終端なし' do
+          let(:range_array) { [Date.parse('2020-05-01'), nil] }
+          it { is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-04-01')]] }
+        end
+      end
+
+      context do
+        let(:from_range_arrays) do
+          [
+            [Date.parse('2020-12-01'), nil],
+            [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+            [Date.parse('2020-01-01'), Date.parse('2020-04-01')]
+          ]
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-02-01'), nil] }
+          it { is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-01-01')]] }
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-02-01')] }
+          it {
+            is_expected.to eq [
+              [Date.parse('2020-01-01'), Date.parse('2020-01-01')],
+              [Date.parse('2020-03-01'), Date.parse('2020-04-01')],
+              [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+              [Date.parse('2020-12-01'), nil]
+            ]
+          }
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-07-01')] }
+          it {
+            is_expected.to eq [
+              [Date.parse('2020-01-01'), Date.parse('2020-01-01')],
+              [Date.parse('2020-08-01'), Date.parse('2020-10-01')],
+              [Date.parse('2020-12-01'), nil]
+            ]
+          }
+        end
+        context do
+          let(:range_array) { [Date.parse('2021-01-01'), Date.parse('2021-02-01')] }
+          it {
+            is_expected.to eq [
+              [Date.parse('2020-01-01'), Date.parse('2020-04-01')],
+              [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+              [Date.parse('2020-12-01'), Date.parse('2020-12-01')],
+              [Date.parse('2021-03-01'), nil]
+            ]
+          }
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-02-01'), Date.parse('2020-11-01')] }
+          it {
+            is_expected.to eq [
+              [Date.parse('2020-01-01'), Date.parse('2020-01-01')],
+              [Date.parse('2020-12-01'), nil]
+            ]
+          }
+        end
+        context do
+          let(:range_array) { [Date.parse('2010-02-01'), nil] }
+          it { is_expected.to eq [] }
+        end
+        context do
+          let(:range_array) { [Date.parse('2010-02-01'), Date.parse('2020-12-01')] }
+          it { is_expected.to eq [[Date.parse('2021-01-01'), nil]] }
+        end
       end
       context do
-        let(:range_array) { [Date.parse('2020-02-01'), nil] }
-        it { is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-01-01')]] }
-      end
-      context do
-        let(:range_array) { [Date.parse('2020-04-01'), Date.parse('2020-10-01')] }
-        it {
-          is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-03-01')],
-                             [Date.parse('2020-11-01'), nil]]
-        }
+        let(:from_range_arrays) do
+          [
+            [Date.parse('2020-07-01'), nil],
+            [Date.parse('2020-07-01'), Date.parse('2020-10-01')],
+            [Date.parse('2020-01-01'), Date.parse('2020-08-01')]
+          ]
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-02-01'), nil] }
+          it { is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-01-01')]] }
+        end
+        context do
+          let(:range_array) { [Date.parse('2020-04-01'), Date.parse('2020-10-01')] }
+          it {
+            is_expected.to eq [[Date.parse('2020-01-01'), Date.parse('2020-03-01')],
+                               [Date.parse('2020-11-01'), nil]]
+          }
+        end
       end
     end
   end
