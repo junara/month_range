@@ -1,11 +1,10 @@
 name: Ruby Gem
-
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-
+    branches:
+      - master
+    tags:
+      - "!*"
 jobs:
   build:
     name: Build + Publish
