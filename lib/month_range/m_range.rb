@@ -7,6 +7,8 @@ class MonthRange::MRange < Range
   attr_reader :start_month, :end_month
   class InvalidStartEnd < MonthRange::Error
   end
+  class NotMRange < MonthRange::Error
+  end
 
   def initialize(start_month, end_month)
     raise InvalidStartEnd unless start_month.is_a?(MonthRange::Month)
@@ -19,7 +21,7 @@ class MonthRange::MRange < Range
   end
 
   def overlap?(m_range)
-    raise "#{m_range} must be MRange." unless m_range.is_a?(MonthRange::MRange)
+    raise NotMRange, "#{m_range} must be MRange." unless m_range.is_a?(MonthRange::MRange)
 
     true if cover?(m_range.start_month) || cover?(m_range.end_month) || m_range.cover?(self)
   end
